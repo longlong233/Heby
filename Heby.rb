@@ -1,4 +1,4 @@
-for i in ObjectSpace.each_object(Class).select { |cls| cls < Object } do
+for i in ObjectSpace.each_object(Class).select { |cls| cls < Object }
   begin
     i.prepend(Module.new do
       def | other
@@ -10,53 +10,60 @@ for i in ObjectSpace.each_object(Class).select { |cls| cls < Object } do
 end
 Array.prepend(Module.new do
   def | other
-    return self.push other
+    return self << other
   end
-  def [] other
-    if other.is_a? Array
-      len = other.length
-      if len == 3
-        return self[other[1]..other[2]]
-      elsif len > 3
-        return self[other[1]..other[2]] * other[3]
+  def [] key
+    if key.is_a? Array
+      if ~key == 2
+        return self[key[1]..key[2]].insert 0, nil
+      elsif ~key > 2
+        return self[key[1]..key[2]] * key[3]
       else
-        super(other)
+        super
       end
-    elsif other.is_a? String
-      if self[0] == nil
-        return self[1..~self] * other
-      else
-        return self[0..~self - 1] * other
-      end
+    elsif self == u8
+      return Array.new key + 1
+    elsif key.is_a? String
+      return self[1..~self] * key
     else
-      super(other)
+      super
+    end
+  end
+  def []= key, other
+    if (key.is_a? Array) && ~key == 2
+      for i in key[1]..key[2]
+        self[i] = other
+      end
+    elsif key == 0
+      self[1 | ~self] = other
+    else
+      super
     end
   end
   def ~
-    if self[0] == nil
-      return self.length - 1
-    else
-      return self.length
-    end
+    return self.length - 1
   end
 end)
-def say_single(a)
+def u8
+  return []
+end
+def say_single a
   if a.is_a? Array
     puts a[" | "]
   else
     puts a
   end
 end
-def say(*a)
+def say *a
   a.each{|i| say_single i}
 end
-def cyber(a)
+def cyber a
   if a.is_a? Integer
-    return a.chr(Encoding::UTF_8)
-  else
+    return a.chr Encoding::UTF_8
+  elsif a.is_a? Array
     return a.map{|i| i && (cyber i)}.join
   end
 end
-def says(a)
+def says a
   say cyber a
 end
